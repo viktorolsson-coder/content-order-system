@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id                  String              @id @default(cuid())
+  name                String              @unique
+  monthlyTarget       Int                 @default(0)
+  createdAt           DateTime            @default(now())
+  orders              Order[]
+  manualAdjustments   ManualAdjustment[]
+}
+
+model Order {
+  id                  String   @id @default(cuid())
+  clientId            String
+  client              Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  taskName            String
+  type                String
+  briefLink           String
+  contentLink         String?
+  generalDescription  String
+  numberOfCreatives   Int
+  deadline            DateTime
+  asanaTaskGid        String?
+  asanaTaskUrl        String?
+  createdAt           DateTime @default(now())
+
+  @@index([clientId, createdAt])
+}
+
+model ManualAdjustment {
+  id         String   @id @default(cuid())
+  clientId   String
+  client     Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  month      String   // YYYY-MM
+  delta      Int      // positive or negative adjustment to delivered count
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([clientId, month])
+}
